@@ -1,0 +1,70 @@
+{
+  "id": "openclaw-dida365-mcp",
+  "name": "Dida365 MCP",
+  "description": "Expose official Dida365 MCP tools to OpenClaw agents through mcp-remote.",
+  "version": "0.2.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "serverUrl": {
+        "type": "string",
+        "default": "https://mcp.dida365.com"
+      },
+      "command": {
+        "type": "string",
+        "default": "npx"
+      },
+      "args": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "default": [
+          "-y",
+          "mcp-remote@latest"
+        ]
+      },
+      "host": {
+        "type": "string",
+        "default": "127.0.0.1"
+      },
+      "authTimeoutSeconds": {
+        "type": "integer",
+        "minimum": 30,
+        "default": 300
+      },
+      "requestTimeoutSeconds": {
+        "type": "integer",
+        "minimum": 60,
+        "default": 300
+      },
+      "toolAllowlist": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "default": []
+      },
+      "toolDenylist": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "default": []
+      },
+      "idleTimeoutSeconds": {
+        "type": "integer",
+        "minimum": 0,
+        "default": 600
+      },
+      "refreshManifestOnStartup": {
+        "type": "boolean",
+        "default": false
+      },
+      "manifestPath": {
+        "type": "string"
+      }
+    }
+  }
+}
