@@ -1,12 +1,12 @@
-# openclaw-dida365-mcp
+# OpenClaw 滴答清单（Dida365）MCP 插件
 
-一个将 **Dida365 官方 MCP** 直接接入 **OpenClaw Agent 工具层**的插件。
+`openclaw-dida365-mcp` 是一个将 **滴答清单（Dida365）官方 MCP** 直接接入 **OpenClaw Agent 工具层**的插件。
 
-它的目标很明确：在统一的 Agent 会话中调用 Dida365 能力，同时保持工具命名、参数结构和上游官方 MCP 一致，不额外引入一层私有 API 或专用 Agent 路由。
+它的目标很明确：在统一的 Agent 会话中调用滴答清单能力，同时保持工具命名、参数结构和上游官方 MCP 一致，不额外引入一层私有 API，也不依赖专用 Agent 路由。
 
 ## ✨ 特性
 
-- 直接暴露 Dida365 官方 MCP 工具
+- 直接暴露滴答清单（Dida365）官方 MCP 工具
 - 使用官方 `tools/list` 生成的工具 schema
 - 支持随上游工具集更新而刷新
 - 通过 `mcp-remote` 连接远端 MCP，并复用单进程内连接
@@ -14,7 +14,7 @@
 
 ## 🧭 设计定位
 
-这个项目不是 Dida365 的替代实现，也不是“再包一层任务 API”的封装器。  
+这个项目不是滴答清单的替代实现，也不是“再包一层任务 API”的封装器。  
 它更像一个**薄桥接层**：
 
 ```text
@@ -26,13 +26,13 @@ OpenClaw Agent
 
 它解决的是这类问题：
 
-- 希望在同一个 Agent 会话中直接调用 Dida365 能力
+- 希望在同一个 Agent 会话中直接调用滴答清单（Dida365）能力
 - 希望保持官方工具名，而不是维护一套二次映射
 - 希望插件本身尽量轻，升级路径尽量跟随官方 MCP
 
 ## 🆚 与常见接入方式的区别
 
-围绕滴答清单 / Dida365 的 Agent 接入，常见做法通常分成几类：
+围绕滴答清单（Dida365）的 Agent 接入，常见做法通常分成几类：
 
 | 方式 | 常见特点 | 典型问题 | 本项目的选择 |
 | --- | --- | --- | --- |
@@ -42,32 +42,34 @@ OpenClaw Agent
 
 如果你需要的是“稳定复用上游官方 MCP 能力”，而不是“重新设计一套任务抽象层”，这个项目更合适。
 
-## 📦 官方能力接入范围
+## 📦 MCP 能力概览
 
-截至 `2026-03-24`，重新从 Dida365 官方 MCP 拉取 `tools/list` 后，当前官方暴露的工具共 `20` 个；本项目默认按 manifest **全量注册**：
+截至 `2026-03-24`，重新从滴答清单（Dida365）官方 MCP 拉取 `tools/list` 后，当前官方暴露的工具共 `20` 个；本项目默认按 manifest **全量注册**。
 
-```text
-list_projects
-get_project_by_id
-get_project_with_undone_tasks
-create_task
-update_task
-get_task_in_project
-complete_task
-complete_tasks_in_project
-search_task
-search
-fetch
-list_undone_tasks_by_date
-list_undone_tasks_by_time_query
-get_task_by_id
-filter_tasks
-list_completed_tasks_by_date
-move_task
-batch_add_tasks
-batch_update_tasks
-get_user_preference
-```
+下面的分类仅用于文档说明；运行时仍然直接使用官方工具名。
+
+| 抽象分类 | 官方 MCP 工具 | 对应功能 |
+| --- | --- | --- |
+| 项目管理 | `list_projects` | 列出全部项目 |
+| 项目管理 | `get_project_by_id` | 按项目 ID 查看项目详情 |
+| 项目管理 | `get_project_with_undone_tasks` | 查看项目及其未完成任务 |
+| 任务管理 | `create_task` | 创建任务 |
+| 任务管理 | `update_task` | 更新任务内容、时间、字段等信息 |
+| 任务管理 | `get_task_in_project` | 获取某个项目中的指定任务 |
+| 任务管理 | `get_task_by_id` | 按任务 ID 获取任务详情 |
+| 任务管理 | `complete_task` | 标记单个任务完成 |
+| 任务管理 | `complete_tasks_in_project` | 批量完成项目中的任务 |
+| 任务管理 | `move_task` | 移动任务到其他位置或项目 |
+| 查询检索 | `search_task` | 搜索任务 |
+| 查询检索 | `search` | 通用搜索 |
+| 查询检索 | `fetch` | 按 MCP 服务定义执行抓取类查询 |
+| 查询检索 | `filter_tasks` | 按条件筛选任务 |
+| 时间视图 | `list_undone_tasks_by_date` | 按日期查看未完成任务 |
+| 时间视图 | `list_undone_tasks_by_time_query` | 按时间查询词查看未完成任务 |
+| 时间视图 | `list_completed_tasks_by_date` | 按日期查看已完成任务 |
+| 批量操作 | `batch_add_tasks` | 批量创建任务 |
+| 批量操作 | `batch_update_tasks` | 批量更新任务 |
+| 账户配置 | `get_user_preference` | 读取用户偏好设置 |
 
 默认策略如下：
 
@@ -130,7 +132,7 @@ npm run refresh-tools
 
 | 配置项 | 默认值 | 说明 |
 | --- | --- | --- |
-| `serverUrl` | `https://mcp.dida365.com` | Dida365 MCP 地址 |
+| `serverUrl` | `https://mcp.dida365.com` | 滴答清单（Dida365）MCP 地址 |
 | `command` | `npx` | 启动 `mcp-remote` 的命令 |
 | `args` | `["-y", "mcp-remote@latest"]` | 启动参数 |
 | `host` | `127.0.0.1` | 本地 OAuth 回调监听地址 |
@@ -148,7 +150,7 @@ npm run refresh-tools
 
 当前行为是：
 
-- 第一次调用 Dida365 工具时拉起 `mcp-remote`
+- 第一次调用滴答清单（Dida365）工具时拉起 `mcp-remote`
 - 同一个 OpenClaw 进程内复用同一条连接
 - 默认空闲 `600` 秒自动关闭
 - 下次调用时自动重连
