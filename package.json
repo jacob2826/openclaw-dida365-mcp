@@ -50,7 +50,7 @@
     "verify-basic": "node ./scripts/verify-basic.mjs"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.27.1"
+    "@modelcontextprotocol/sdk": "^1.29.0"
   },
   "devDependencies": {
     "@types/node": "^24.6.0",
