@@ -1,6 +1,6 @@
 # OpenClaw 滴答清单（Dida365）MCP 插件
 
-`openclaw-dida365-mcp` 是一个将 **滴答清单（Dida365）官方 MCP** 直接接入 **OpenClaw Agent 工具层**的插件。
+`@jacob2826/openclaw-dida365-mcp` 是一个将 **滴答清单（Dida365）官方 MCP** 直接接入 **OpenClaw Agent 工具层**的插件。
 
 它的目标很明确：在统一的 Agent 会话中调用滴答清单能力，同时保持工具命名、参数结构和上游官方 MCP 一致，不额外引入一层私有 API，也不依赖专用 Agent 路由。
 
@@ -10,7 +10,13 @@
 - 使用官方 `tools/list` 生成的工具 schema
 - 支持随上游工具集更新而刷新
 - 通过 `mcp-remote` 连接远端 MCP，并复用单进程内连接
-- 适合接入到 OpenClaw 的主 Agent 或其他通用 Agent
+- 支持通过 npm 包被 OpenClaw 直接安装
+
+## 兼容性
+
+| 插件版本 | OpenClaw 版本 | npm 包名 | 状态 |
+| --- | --- | --- | --- |
+| 0.2.x | `>=2026.3.22` | `@jacob2826/openclaw-dida365-mcp` | 活跃 |
 
 ## 🧭 设计定位
 
@@ -71,39 +77,32 @@ OpenClaw Agent
 | 批量操作 | `batch_update_tasks` | 批量更新任务 |
 | 账户配置 | `get_user_preference` | 读取用户偏好设置 |
 
-默认策略如下：
-
-- manifest 中存在的官方工具会被注册
-- 上游新增工具后，执行 `npm run refresh-tools` 并重启 OpenClaw，即可接入新增能力
-- 如果只希望开放部分工具，可使用 `toolAllowlist` / `toolDenylist`
-
 ## 🚀 安装与启用
 
-### 1. 安装依赖并构建
+### 1. 通过 OpenClaw 直接安装
 
 ```bash
-npm install
-npm run build
+openclaw plugins install "@jacob2826/openclaw-dida365-mcp"
 ```
 
-### 2. 在 OpenClaw 中启用插件
+如果你需要安装指定版本：
 
-在 OpenClaw 配置中启用插件，并将其加入目标 Agent 的工具允许列表。
+```bash
+openclaw plugins install "@jacob2826/openclaw-dida365-mcp@0.2.2"
+```
+
+### 2. 启用插件
+
+```bash
+openclaw config set plugins.entries.openclaw-dida365-mcp.enabled true
+```
+
+### 3. 将插件开放给目标 Agent
+
+如果你的 Agent 使用了工具 allowlist，请确保把插件 `id` 加进去。下面的片段只是示意，请在你现有配置基础上合并：
 
 ```json
 {
-  "plugins": {
-    "openclaw-dida365-mcp": {
-      "path": "/absolute/path/to/openclaw-dida365-mcp",
-      "enabled": true,
-      "config": {
-        "serverUrl": "https://mcp.dida365.com",
-        "authTimeoutSeconds": 300,
-        "requestTimeoutSeconds": 300,
-        "idleTimeoutSeconds": 600
-      }
-    }
-  },
   "agents": {
     "main": {
       "tools": {
@@ -114,19 +113,15 @@ npm run build
 }
 ```
 
-### 3. 拉取官方工具清单
+### 4. 重启 gateway
 
 ```bash
-npm run refresh-tools
+openclaw gateway restart
 ```
 
-该命令会通过 `mcp-remote` 连接官方 MCP，读取 `tools/list`，并更新：
+### 5. 完成 OAuth
 
-`data/mcp-tools.json`
-
-### 4. 完成 OAuth
-
-首次拉取工具或首次真实调用工具时，`mcp-remote` 会触发浏览器登录。完成一次授权后，后续通常会复用本地 token。
+首次真实调用工具时，`mcp-remote` 会触发浏览器登录。完成一次授权后，后续通常会复用本地 token。
 
 ## ⚙️ 配置项
 
@@ -169,7 +164,6 @@ npm install
 npm run build
 npm run check
 npm test
-npm run list-tools
 npm run refresh-tools
 npm run verify-basic
 ```
@@ -177,7 +171,6 @@ npm run verify-basic
 其中：
 
 - `npm test`：覆盖配置解析、manifest 处理、连接复用、空闲回收、注册逻辑等
-- `npm run list-tools`：打印当前 manifest 中记录的官方工具名
 - `npm run refresh-tools`：重新从官方 MCP 拉取 `tools/list`
 - `npm run verify-basic`：做一轮真实基础联通验证，当前覆盖
   - `list_projects`

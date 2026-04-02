@@ -21,8 +21,7 @@ fi
 
 mkdir -p "${TARGET_DIR}"
 
-rsync -a --delete --delete-excluded \
-  --filter 'protect .git/' \
+rsync -a --delete \
   --exclude '.git/' \
   --exclude 'node_modules/' \
   --exclude 'dist/' \

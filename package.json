@@ -1,28 +1,38 @@
 {
-  "name": "openclaw-dida365-mcp",
-  "version": "0.2.1",
-  "description": "OpenClaw plugin that exposes official Dida365 MCP tools to the main agent via mcp-remote.",
+  "name": "@jacob2826/openclaw-dida365-mcp",
+  "version": "0.2.2",
+  "description": "OpenClaw plugin that exposes official Dida365 MCP tools through mcp-remote.",
   "type": "module",
   "license": "GPL-3.0-only",
   "keywords": [
     "openclaw",
     "mcp",
     "dida365",
+    "ticktick",
     "openclaw-plugin"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jacob2826/openclaw-dida365-mcp.git"
+  },
+  "homepage": "https://github.com/jacob2826/openclaw-dida365-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/jacob2826/openclaw-dida365-mcp/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=20.0.0"
   },
   "files": [
     "CHANGELOG.md",
-    "CONTRIBUTING.md",
+    "LICENSE",
+    "README.md",
     "SECURITY.md",
     "data",
     "dist",
-    "LICENSE",
-    "openclaw.plugin.json",
-    "README.md",
-    "scripts"
+    "openclaw.plugin.json"
   ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -32,6 +42,7 @@
     "pretest": "npm run build",
     "test": "node --test ./test/*.test.mjs",
     "ci": "npm run check && npm test",
+    "prepack": "npm run ci",
     "list-tools": "node -e \"const m=require('./data/mcp-tools.json'); console.log(m.tools.map((tool)=>tool.name).join('\\n')); console.log('COUNT='+m.tools.length);\"",
     "scan-sensitive": "node ./scripts/scan-sensitive.mjs .",
     "sync-git": "bash ./scripts/sync-to-git.sh",
@@ -50,8 +61,10 @@
       "./dist/index.js"
     ],
     "install": {
+      "npmSpec": "@jacob2826/openclaw-dida365-mcp",
       "localPath": "extensions/openclaw-dida365-mcp",
-      "defaultChoice": "path"
+      "defaultChoice": "npm",
+      "minHostVersion": ">=2026.3.22"
     }
   }
 }
