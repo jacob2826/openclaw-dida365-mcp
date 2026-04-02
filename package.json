@@ -45,7 +45,6 @@
     "prepack": "npm run ci",
     "list-tools": "node -e \"const m=require('./data/mcp-tools.json'); console.log(m.tools.map((tool)=>tool.name).join('\\n')); console.log('COUNT='+m.tools.length);\"",
     "scan-sensitive": "node ./scripts/scan-sensitive.mjs .",
-    "sync-git": "bash ./scripts/sync-to-git.sh",
     "refresh-tools": "node ./scripts/refresh-tools.mjs",
     "verify-basic": "node ./scripts/verify-basic.mjs"
   },

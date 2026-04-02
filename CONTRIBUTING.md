@@ -17,7 +17,6 @@ npm install
 npm run build
 npm run check
 npm test
-npm run sync-git
 ```
 
 如果你要同步最新官方工具列表：
@@ -37,10 +36,12 @@ npm run verify-basic
 如果你准备发布到 GitHub，请先执行：
 
 ```bash
-npm run sync-git
+npm test
+node ./scripts/scan-sensitive.mjs .
+env npm_config_cache=/tmp/openclaw-dida365-npm-cache npm pack --dry-run --json
 ```
 
-然后在你的 Git 工作目录镜像中检查并提交。
+确认输出正常后，直接在当前仓库检查并提交。
 
 ## 提交前检查
 

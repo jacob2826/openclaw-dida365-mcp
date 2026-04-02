@@ -8,7 +8,6 @@ const DEFAULT_IGNORES = new Set([
   "node_modules",
   "dist",
   "coverage",
-  ".sync-git.local",
   ".DS_Store",
 ]);
 
