@@ -1,5 +1,12 @@
 # OpenClaw 滴答清单（Dida365）MCP 插件
 
+[![npm version](https://img.shields.io/npm/v/%40jacob2826%2Fopenclaw-dida365-mcp?logo=npm)](https://www.npmjs.com/package/@jacob2826/openclaw-dida365-mcp)
+[![npm downloads](https://img.shields.io/npm/dm/%40jacob2826%2Fopenclaw-dida365-mcp?logo=npm)](https://www.npmjs.com/package/@jacob2826/openclaw-dida365-mcp)
+[![CI](https://img.shields.io/github/actions/workflow/status/jacob2826/openclaw-dida365-mcp/ci.yml?branch=main&label=CI&logo=githubactions)](https://github.com/jacob2826/openclaw-dida365-mcp/actions/workflows/ci.yml)
+[![Node >=20](https://img.shields.io/badge/Node-%3E%3D20-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![OpenClaw >=2026.3.22](https://img.shields.io/badge/OpenClaw-%3E%3D2026.3.22-111827)](https://github.com/jacob2826/openclaw-dida365-mcp)
+[![License: GPL-3.0-only](https://img.shields.io/badge/License-GPL--3.0--only-blue.svg)](./LICENSE)
+
 `@jacob2826/openclaw-dida365-mcp` 是一个将 **滴答清单（Dida365）官方 MCP** 直接接入 **OpenClaw Agent 工具层**的插件。
 
 它的目标很明确：在统一的 Agent 会话中调用滴答清单能力，同时保持工具命名、参数结构和上游官方 MCP 一致，不额外引入一层私有 API，也不依赖专用 Agent 路由。
@@ -84,7 +91,7 @@ OpenClaw Agent
 
 ### 先看这个
 
-如果你的 OpenClaw 开了 `tools.profile`（例如 `"coding"`）或显式 `tools.allow` / allowlist，只安装插件还不够；还必须额外放行 optional plugin tools，否则对话里的 Agent 看不到 Dida365 工具。
+如果你的 OpenClaw 开了 `tools.profile`（例如 `"coding"`）或显式 `tools.allow` / allowlist，只安装插件还不够；还必须额外放行“可选插件工具”，否则对话里的 Agent 看不到滴答清单工具。
 
 最短可用命令：
 
@@ -95,7 +102,7 @@ openclaw config set tools.alsoAllow '["group:plugins"]' --strict-json
 openclaw gateway restart
 ```
 
-如果你跳过第 3 行，常见现象就是“插件已安装，但聊天里没有任何 dida365 工具可调用”。
+如果你跳过第 3 行，常见现象就是“插件已安装，但聊天里没有任何滴答清单工具可调用”。
 
 ### 1. 通过 OpenClaw 直接安装
 
@@ -118,7 +125,7 @@ openclaw config set plugins.entries.openclaw-dida365-mcp.enabled true
 ### 3. 把插件工具加入 OpenClaw 的工具策略
 
 这个插件注册的是 `optional` 插件工具。  
-如果你的 OpenClaw 配置了 `tools.profile`（例如常见的 `"coding"`）或显式 `tools.allow`，插件虽然已安装启用，但对话里的 Agent 仍然**看不到**这些工具。
+如果你的 OpenClaw 配置了 `tools.profile`（例如常见的 `"coding"`）或显式 `tools.allow`，插件虽然已安装启用，但对话里的 Agent 仍然**看不到**这些滴答清单工具。
 
 推荐直接执行下面这条全局配置：
 
