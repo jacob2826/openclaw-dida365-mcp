@@ -34,7 +34,7 @@ const transport = new StdioClientTransport({
 pipeStderr(transport.stderr);
 
 const client = new Client(
-  { name: "openclaw-dida365-mcp-refresh", version: "0.2.2" },
+  { name: "openclaw-dida365-mcp-refresh", version: "0.2.3" },
   { capabilities: {} },
 );
 

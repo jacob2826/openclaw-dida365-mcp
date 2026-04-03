@@ -33,7 +33,7 @@ transport.stderr?.on("data", (chunk) => {
 });
 
 const client = new Client(
-  { name: "openclaw-dida365-mcp-verify-basic", version: "0.2.2" },
+  { name: "openclaw-dida365-mcp-verify-basic", version: "0.2.3" },
   { capabilities: {} },
 );
 

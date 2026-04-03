@@ -113,7 +113,7 @@ openclaw plugins install "@jacob2826/openclaw-dida365-mcp"
 如果你需要安装指定版本：
 
 ```bash
-openclaw plugins install "@jacob2826/openclaw-dida365-mcp@0.2.2"
+openclaw plugins install "@jacob2826/openclaw-dida365-mcp@0.2.3"
 ```
 
 ### 2. 启用插件

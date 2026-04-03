@@ -2,7 +2,7 @@
   "id": "openclaw-dida365-mcp",
   "name": "滴答清单（Dida365）MCP",
   "description": "将滴答清单（Dida365）官方 MCP 工具通过 mcp-remote 暴露给 OpenClaw Agent。工具为 optional；若启用 tools.profile 或 allowlist，还需放行 group:plugins 或本插件。",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "configSchema": {
     "type": "object",
     "additionalProperties": false,

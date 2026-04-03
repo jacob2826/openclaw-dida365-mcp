@@ -1,6 +1,6 @@
 {
   "name": "@jacob2826/openclaw-dida365-mcp",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "OpenClaw plugin that exposes official Dida365 MCP tools through mcp-remote.",
   "type": "module",
   "license": "GPL-3.0-only",

@@ -1,5 +1,14 @@
 # 变更记录
 
+## 0.2.3 - 2026-04-03
+
+- 修复 `mcp-remote` 首次拉起时可能因 npm cache 权限异常导致桥接失败的问题，默认改用隔离 npm cache
+- 在连接失败时回传最近 stderr 摘要，便于定位 `Connection closed` 背后的真实原因
+- 扩展日志脱敏规则，补上 query-string 中的 `access_token`、`refresh_token`、`id_token`、`code`
+- 刷新 bundled manifest 到官方当前 `22` 个工具，新增 `create_project`、`update_project`
+- 在 README、插件描述和启动日志中补充 OpenClaw 可选插件工具放行提示，并新增角标与安装快捷命令
+- 增加桥接诊断、npm cache 默认值和提示文案的测试覆盖
+
 ## 0.2.2 - 2026-04-02
 
 - 支持通过 `openclaw plugins install "@jacob2826/openclaw-dida365-mcp"` 直接安装

@@ -7,7 +7,7 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 
 import type { RemoteToolDefinition } from "./types.js";
 
-const PACKAGE_VERSION = "0.2.2";
+const PACKAGE_VERSION = "0.2.3";
 const RECENT_STDERR_LIMIT = 20;
 const STDERR_SUMMARY_LIMIT = 6;
 
