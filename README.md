@@ -91,7 +91,7 @@ OpenClaw Agent
 
 ### 先看这个
 
-如果你的 OpenClaw 开了 `tools.profile`（例如 `"coding"`）或显式 `tools.allow` / allowlist，只安装插件还不够；还必须额外放行“可选插件工具”，否则对话里的 Agent 看不到滴答清单工具。
+如果你的 OpenClaw 开了 `tools.profile`（例如 `"coding"`）或显式 `tools.allow` / allowlist，只安装插件还不够；还必须额外放行“可选插件工具”，否则对话里的 Agent 看不到滴答清单 MCP 工具。
 
 最短可用命令：
 
@@ -102,7 +102,7 @@ openclaw config set tools.alsoAllow '["group:plugins"]' --strict-json
 openclaw gateway restart
 ```
 
-如果你跳过第 3 行，常见现象就是“插件已安装，但聊天里没有任何滴答清单工具可调用”。
+如果你跳过第 3 行，常见现象就是“插件已安装，但聊天里没有任何滴答清单 MCP 工具可调用”。
 
 ### 1. 通过 OpenClaw 直接安装
 
@@ -125,7 +125,7 @@ openclaw config set plugins.entries.openclaw-dida365-mcp.enabled true
 ### 3. 把插件工具加入 OpenClaw 的工具策略
 
 这个插件注册的是 `optional` 插件工具。  
-如果你的 OpenClaw 配置了 `tools.profile`（例如常见的 `"coding"`）或显式 `tools.allow`，插件虽然已安装启用，但对话里的 Agent 仍然**看不到**这些滴答清单工具。
+如果你的 OpenClaw 配置了 `tools.profile`（例如常见的 `"coding"`）或显式 `tools.allow`，插件虽然已安装启用，但对话里的 Agent 仍然**看不到**这些滴答清单 MCP 工具。
 
 推荐直接执行下面这条全局配置：
 
