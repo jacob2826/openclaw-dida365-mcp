@@ -14,17 +14,25 @@ const manifestPath = path.join(projectRoot, "data", "mcp-tools.json");
 
 function createApi(pluginConfig = {}) {
   const registered = [];
+  const infoMessages = [];
+  const warnMessages = [];
 
   return {
     registered,
+    infoMessages,
+    warnMessages,
     api: {
       pluginConfig: {
         manifestPath,
         ...pluginConfig,
       },
       logger: {
-        info() {},
-        warn() {},
+        info(message) {
+          infoMessages.push(message);
+        },
+        warn(message) {
+          warnMessages.push(message);
+        },
         error() {},
       },
       registerTool(tool) {
@@ -37,7 +45,7 @@ function createApi(pluginConfig = {}) {
 test("registers all official tools from the manifest by default", async () => {
   await resetSharedBridgeStateForTests();
   const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-  const { api, registered } = createApi();
+  const { api, registered, infoMessages } = createApi();
 
   plugin.register(api);
 
@@ -45,6 +53,10 @@ test("registers all official tools from the manifest by default", async () => {
   assert.deepEqual(
     registered.map((tool) => tool.name),
     manifest.tools.map((tool) => tool.name),
+  );
+  assert.match(
+    infoMessages.join("\n"),
+    /tools\.alsoAllow: \["group:plugins"\]/,
   );
 
   await resetSharedBridgeStateForTests();

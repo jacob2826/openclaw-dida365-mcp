@@ -9,6 +9,8 @@ import { getSharedBridgeForConfig } from "./runtime-state.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const pluginRoot = path.resolve(__dirname, "..");
+const TOOL_POLICY_REMINDER =
+  '[openclaw-dida365-mcp] reminder: Dida365 tools are registered as optional plugin tools. If your OpenClaw host uses tools.profile (for example "coding") or a tools allowlist, also enable plugin tools with tools.alsoAllow: ["group:plugins"] or allow the plugin id/tool names explicitly, otherwise chat turns will not see these tools.';
 
 interface OpenClawPluginApi {
   pluginConfig?: Record<string, unknown>;
@@ -35,7 +37,8 @@ interface OpenClawPluginApi {
 const plugin = {
   id: "openclaw-dida365-mcp",
   name: "Dida365 MCP",
-  description: "Expose official Dida365 MCP tools to OpenClaw's normal chat agent.",
+  description:
+    'Expose official Dida365 MCP tools to OpenClaw chat. Optional plugin tools require tools.alsoAllow (for example ["group:plugins"]) or an explicit allowlist entry.',
   configSchema: {
     type: "object",
     additionalProperties: false,
@@ -45,6 +48,8 @@ const plugin = {
     const config = resolvePluginConfig(api.pluginConfig, pluginRoot);
     assertSafePluginConfig(config);
     const bridge = getSharedBridgeForConfig(config, api.logger);
+
+    api.logger.info?.(TOOL_POLICY_REMINDER);
 
     if (config.refreshManifestOnStartup) {
       void bridge.listTools()

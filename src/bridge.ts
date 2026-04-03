@@ -1,9 +1,15 @@
+import os from "node:os";
+import path from "node:path";
 import process from "node:process";
 import { Buffer } from "node:buffer";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
 import type { RemoteToolDefinition } from "./types.js";
+
+const PACKAGE_VERSION = "0.2.2";
+const RECENT_STDERR_LIMIT = 20;
+const STDERR_SUMMARY_LIMIT = 6;
 
 export interface BridgeLogger {
   info?: (message: string) => void;
@@ -213,6 +219,7 @@ async function connectWithSdk(
   options: BridgeOptions,
   logger?: BridgeLogger,
 ): Promise<BridgeConnection> {
+  const recentStderr: string[] = [];
   const transport = new StdioClientTransport({
     command: options.command,
     args: [
@@ -223,32 +230,36 @@ async function connectWithSdk(
       "--auth-timeout",
       String(options.authTimeoutSeconds),
     ],
-    env: {
-      ...stringifyEnv({
-        ...process.env,
-        ...options.env,
-      }),
-    },
+    env: buildRuntimeEnv(options.env),
     stderr: "pipe",
   });
 
-  pipeStderr(transport.stderr, logger);
+  pipeStderr(transport.stderr, logger, recentStderr);
 
   const client = new Client(
     {
       name: "openclaw-dida365-mcp",
-      version: "0.2.0",
+      version: PACKAGE_VERSION,
     },
     {
       capabilities: {},
     },
   );
 
-  await client.connect(transport, {
-    timeout: options.requestTimeoutSeconds * 1000,
-    resetTimeoutOnProgress: true,
-    maxTotalTimeout: options.requestTimeoutSeconds * 1000,
-  });
+  try {
+    await client.connect(transport, {
+      timeout: options.requestTimeoutSeconds * 1000,
+      resetTimeoutOnProgress: true,
+      maxTotalTimeout: options.requestTimeoutSeconds * 1000,
+    });
+  } catch (error) {
+    await client.close().catch(() => {});
+    await transport.close().catch(() => {});
+    throw new Error(
+      formatConnectFailureMessage(error, recentStderr, options.serverUrl),
+      { cause: error instanceof Error ? error : undefined },
+    );
+  }
 
   return {
     client,
@@ -279,12 +290,15 @@ function attachTransportHooks(
 function pipeStderr(
   stream: unknown,
   logger: BridgeLogger | undefined,
+  recentStderr: string[] = [],
 ): void {
   if (!stream || typeof stream !== "object" || !("on" in stream) || typeof stream.on !== "function") {
     return;
   }
   stream.on("data", (chunk: Buffer | string) => {
-    const text = redactSensitiveText(String(chunk).trim());
+    const redacted = redactSensitiveText(String(chunk));
+    pushRecentStderr(recentStderr, redacted);
+    const text = redacted.trim();
     if (!text) {
       return;
     }
@@ -292,11 +306,72 @@ function pipeStderr(
   });
 }
 
+export function buildRuntimeEnv(
+  env: NodeJS.ProcessEnv | undefined,
+  baseEnv: NodeJS.ProcessEnv = process.env,
+): Record<string, string> {
+  const merged = stringifyEnv({
+    ...baseEnv,
+    ...env,
+  });
+  const configuredCache = [merged.NPM_CONFIG_CACHE, merged.npm_config_cache]
+    .find((value) => typeof value === "string" && value.trim().length > 0);
+
+  if (configuredCache) {
+    return merged;
+  }
+
+  const stateDir = merged.OPENCLAW_STATE_DIR?.trim();
+  const npmCacheDir = stateDir
+    ? path.resolve(stateDir, "npm")
+    : path.join(os.homedir(), ".openclaw", "cache", "openclaw-dida365-mcp", "npm");
+
+  return {
+    ...merged,
+    NPM_CONFIG_CACHE: npmCacheDir,
+    npm_config_cache: npmCacheDir,
+  };
+}
+
 export function redactSensitiveText(text: string): string {
   return text
     .replace(/"access_token"\s*:\s*"[^"]+"/gi, '"access_token":"REDACTED"')
     .replace(/"refresh_token"\s*:\s*"[^"]+"/gi, '"refresh_token":"REDACTED"')
-    .replace(/"id_token"\s*:\s*"[^"]+"/gi, '"id_token":"REDACTED"');
+    .replace(/"id_token"\s*:\s*"[^"]+"/gi, '"id_token":"REDACTED"')
+    .replace(/([?&](?:access_token|refresh_token|id_token|code)=)[^&#\s"]+/gi, "$1REDACTED")
+    .replace(/\b((?:access_token|refresh_token|id_token|code)=)[^&\s"]+/gi, "$1REDACTED");
+}
+
+export function formatConnectFailureMessage(
+  error: unknown,
+  recentStderr: string[],
+  serverUrl?: string,
+): string {
+  const detail = error instanceof Error ? error.message : String(error);
+  const prefix = serverUrl
+    ? `Failed to connect mcp-remote to ${serverUrl}`
+    : "Failed to connect mcp-remote";
+  const stderrSummary = recentStderr.slice(-STDERR_SUMMARY_LIMIT).join(" | ");
+
+  return stderrSummary
+    ? `${prefix}: ${detail}. Recent stderr: ${stderrSummary}`
+    : `${prefix}: ${detail}`;
+}
+
+function pushRecentStderr(
+  recentStderr: string[],
+  text: string,
+): void {
+  for (const line of text.split(/\r?\n/)) {
+    const normalized = line.trim();
+    if (!normalized) {
+      continue;
+    }
+    recentStderr.push(normalized);
+    if (recentStderr.length > RECENT_STDERR_LIMIT) {
+      recentStderr.splice(0, recentStderr.length - RECENT_STDERR_LIMIT);
+    }
+  }
 }
 
 function stringifyEnv(

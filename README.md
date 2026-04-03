@@ -7,6 +7,7 @@
 ## ✨ 特性
 
 - 直接暴露滴答清单（Dida365）官方 MCP 工具
+- 当前 bundled manifest 已覆盖官方 `22` 个工具，包含 `create_project`、`update_project`
 - 使用官方 `tools/list` 生成的工具 schema
 - 支持随上游工具集更新而刷新
 - 通过 `mcp-remote` 连接远端 MCP，并复用单进程内连接
@@ -50,13 +51,15 @@ OpenClaw Agent
 
 ## 📦 MCP 能力概览
 
-截至 `2026-03-24`，重新从滴答清单（Dida365）官方 MCP 拉取 `tools/list` 后，当前官方暴露的工具共 `20` 个；本项目默认按 manifest **全量注册**。
+截至 `2026-04-03`，重新从滴答清单（Dida365）官方 MCP 拉取 `tools/list` 后，当前官方暴露的工具共 `22` 个；本项目默认按 manifest **全量注册**。
 
 下面的分类仅用于文档说明；运行时仍然直接使用官方工具名。
 
 | 抽象分类 | 官方 MCP 工具 | 对应功能 |
 | --- | --- | --- |
 | 项目管理 | `list_projects` | 列出全部项目 |
+| 项目管理 | `create_project` | 创建项目 |
+| 项目管理 | `update_project` | 更新项目属性 |
 | 项目管理 | `get_project_by_id` | 按项目 ID 查看项目详情 |
 | 项目管理 | `get_project_with_undone_tasks` | 查看项目及其未完成任务 |
 | 任务管理 | `create_task` | 创建任务 |
@@ -79,6 +82,21 @@ OpenClaw Agent
 
 ## 🚀 安装与启用
 
+### 先看这个
+
+如果你的 OpenClaw 开了 `tools.profile`（例如 `"coding"`）或显式 `tools.allow` / allowlist，只安装插件还不够；还必须额外放行 optional plugin tools，否则对话里的 Agent 看不到 Dida365 工具。
+
+最短可用命令：
+
+```bash
+openclaw plugins install "@jacob2826/openclaw-dida365-mcp"
+openclaw config set plugins.entries.openclaw-dida365-mcp.enabled true
+openclaw config set tools.alsoAllow '["group:plugins"]' --strict-json
+openclaw gateway restart
+```
+
+如果你跳过第 3 行，常见现象就是“插件已安装，但聊天里没有任何 dida365 工具可调用”。
+
 ### 1. 通过 OpenClaw 直接安装
 
 ```bash
@@ -97,7 +115,43 @@ openclaw plugins install "@jacob2826/openclaw-dida365-mcp@0.2.2"
 openclaw config set plugins.entries.openclaw-dida365-mcp.enabled true
 ```
 
-### 3. 将插件开放给目标 Agent
+### 3. 把插件工具加入 OpenClaw 的工具策略
+
+这个插件注册的是 `optional` 插件工具。  
+如果你的 OpenClaw 配置了 `tools.profile`（例如常见的 `"coding"`）或显式 `tools.allow`，插件虽然已安装启用，但对话里的 Agent 仍然**看不到**这些工具。
+
+推荐直接执行下面这条全局配置：
+
+```bash
+openclaw config set tools.alsoAllow '["group:plugins"]' --strict-json
+```
+
+如果你希望更明确地验证当前配置是否已经生效，可以按这个顺序执行：
+
+```bash
+openclaw config get tools.alsoAllow
+openclaw plugins info openclaw-dida365-mcp
+openclaw gateway restart
+```
+
+如果你只想给某个 Agent 放开，也可以在对应 Agent 的工具配置里加：
+
+```json
+{
+  "agents": {
+    "list": [
+      {
+        "id": "main",
+        "tools": {
+          "alsoAllow": ["group:plugins"]
+        }
+      }
+    ]
+  }
+}
+```
+
+### 4. 如需更细粒度控制，再使用 allowlist
 
 如果你的 Agent 使用了工具 allowlist，请确保把插件 `id` 加进去。下面的片段只是示意，请在你现有配置基础上合并：
 
@@ -113,13 +167,13 @@ openclaw config set plugins.entries.openclaw-dida365-mcp.enabled true
 }
 ```
 
-### 4. 重启 gateway
+### 5. 重启 gateway
 
 ```bash
 openclaw gateway restart
 ```
 
-### 5. 完成 OAuth
+### 6. 完成 OAuth
 
 首次真实调用工具时，`mcp-remote` 会触发浏览器登录。完成一次授权后，后续通常会复用本地 token。
 
@@ -179,6 +233,17 @@ npm run verify-basic
   - `complete_task`
 
 CI 不执行真实 OAuth 集成测试；需要登录和真实账号数据的验证，仍建议在本地完成。
+
+## 🔧 常见排障
+
+如果首次拉起 `mcp-remote` 时只看到模糊的 `Connection closed`，优先查看 gateway 或插件日志里附带的最近 `stderr` 摘要。当前版本会把 `npx` 启动失败的关键上下文一并带出来。
+
+如果日志里出现 `npm error code EPERM`、`Your cache folder contains root-owned files` 一类错误，说明问题在 `npx` / npm cache，而不是 Dida365 OAuth 本身。插件运行时现在会默认给 `mcp-remote` 使用隔离的 npm cache：
+
+- 优先使用 `OPENCLAW_STATE_DIR/npm`
+- 否则回退到 `~/.openclaw/cache/openclaw-dida365-mcp/npm`
+
+如果你有自定义 npm cache 管理策略，仍然可以显式设置 `NPM_CONFIG_CACHE` 或 `npm_config_cache` 覆盖默认值。
 
 ## 🛡️ 安全边界
 

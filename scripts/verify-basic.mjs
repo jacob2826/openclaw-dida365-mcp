@@ -1,3 +1,5 @@
+import os from "node:os";
+import path from "node:path";
 import process from "node:process";
 
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -22,9 +24,7 @@ const transport = new StdioClientTransport({
     "--auth-timeout",
     String(authTimeoutSeconds),
   ],
-  env: Object.fromEntries(
-    Object.entries(process.env).filter((entry) => typeof entry[1] === "string"),
-  ),
+  env: buildRuntimeEnv(process.env),
   stderr: "pipe",
 });
 
@@ -33,7 +33,7 @@ transport.stderr?.on("data", (chunk) => {
 });
 
 const client = new Client(
-  { name: "openclaw-dida365-mcp-verify-basic", version: "0.2.0" },
+  { name: "openclaw-dida365-mcp-verify-basic", version: "0.2.2" },
   { capabilities: {} },
 );
 
@@ -125,5 +125,30 @@ function redactSensitiveText(text) {
   return text
     .replace(/"access_token"\s*:\s*"[^"]+"/gi, '"access_token":"REDACTED"')
     .replace(/"refresh_token"\s*:\s*"[^"]+"/gi, '"refresh_token":"REDACTED"')
-    .replace(/"id_token"\s*:\s*"[^"]+"/gi, '"id_token":"REDACTED"');
+    .replace(/"id_token"\s*:\s*"[^"]+"/gi, '"id_token":"REDACTED"')
+    .replace(/([?&](?:access_token|refresh_token|id_token|code)=)[^&#\s"]+/gi, "$1REDACTED")
+    .replace(/\b((?:access_token|refresh_token|id_token|code)=)[^&\s"]+/gi, "$1REDACTED");
+}
+
+function buildRuntimeEnv(env) {
+  const merged = Object.fromEntries(
+    Object.entries(env).filter((entry) => typeof entry[1] === "string"),
+  );
+  const configuredCache = [merged.NPM_CONFIG_CACHE, merged.npm_config_cache]
+    .find((value) => typeof value === "string" && value.trim().length > 0);
+
+  if (configuredCache) {
+    return merged;
+  }
+
+  const stateDir = merged.OPENCLAW_STATE_DIR?.trim();
+  const npmCacheDir = stateDir
+    ? path.resolve(stateDir, "npm")
+    : path.join(os.homedir(), ".openclaw", "cache", "openclaw-dida365-mcp", "npm");
+
+  return {
+    ...merged,
+    NPM_CONFIG_CACHE: npmCacheDir,
+    npm_config_cache: npmCacheDir,
+  };
 }

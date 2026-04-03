@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-23T16:28:26.661Z",
+  "generatedAt": "2026-04-03T03:58:23.642Z",
   "serverUrl": "https://mcp.dida365.com",
   "tools": [
     {
@@ -847,7 +847,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task reminders",
+                "description": "Task reminders, Each trigger string must follow this pattern:\nTRIGGER(;RELATED=(END))?:(-)?P[nY][nM][nW][nD][T[nH][nM][nS]]\nExplanation\n    TRIGGER: — required prefix\n    ;RELATED=START|END — optional, defines whether the trigger is relative to the start or end time\n    - — optional, indicates the trigger occurs before the reference time (absence means after)\n    P — duration designator\n    nY nM nW nD — years, months, weeks, days\n    T — time separator\n    nH nM nS — hours, minutes, seconds.\nExamples\n[\n  \"TRIGGER:-PT60M\",\n  \"TRIGGER:-P1DT2H\",\n  \"TRIGGER;RELATED=END:-PT15M\",\n  \"TRIGGER:PT0S\"\n]\n Notes\n    \"TRIGGER:-PT60M\" means 60 minutes before the reference time\n    \"TRIGGER;RELATED=END:-PT15M\" means 15 minutes before the end time\n    \"TRIGGER:PT0S\" represents an “on-time” trigger\n    This structure corresponds to a duration format similar to ISO-8601 (e.g., P1DT2H), with additional semantics for direction and reference point.\n",
                 "title": "Reminders"
               },
               "repeatFlag": {
@@ -860,7 +860,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task repeat flag",
+                "description": "Task repeat flag\nThis field MUST be a valid recurrence rule string.\n\nUse:\n- RRULE for standard recurrence\n- ERULE for custom or advanced recurrence\n\nDO NOT mix RRULE and ERULE.\n\nPrefer examples:\n- \"RRULE:FREQ=DAILY\"\n- \"RRULE:FREQ=WEEKLY;BYDAY=MO,WE\"\n- \"ERULE:NAME=CUSTOM;BYDATE=20260325,20260330\"\n        ",
                 "title": "Repeatflag"
               },
               "completedTime": {
@@ -1035,6 +1035,415 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true
+      }
+    },
+    {
+      "name": "create_project",
+      "description": "Create a new project (list) in TickTick.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Color"
+          },
+          "view_mode": {
+            "default": "list",
+            "title": "View Mode",
+            "type": "string"
+          },
+          "kind": {
+            "default": "TASK",
+            "title": "Kind",
+            "type": "string"
+          },
+          "sort_order": {
+            "default": 0,
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "create_project_toolArguments"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Project unique id, hex string of ObjectId",
+            "title": "Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Project name",
+            "title": "Name"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Project color",
+            "title": "Color"
+          },
+          "sortOrder": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Project sort order",
+            "title": "Sortorder"
+          },
+          "closed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Whether project is closed",
+            "title": "Closed"
+          },
+          "groupId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Project group id",
+            "title": "Groupid"
+          },
+          "viewMode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "list",
+                  "kanban",
+                  "timeline"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "list",
+            "description": "Project view mode",
+            "title": "Viewmode"
+          },
+          "permission": {
+            "anyOf": [
+              {
+                "enum": [
+                  "read",
+                  "comment",
+                  "write"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Project permission",
+            "title": "Permission"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "TASK",
+                  "NOTE"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "TASK",
+            "description": "Project kind",
+            "title": "Kind"
+          }
+        },
+        "description": "Project profile information.",
+        "title": "OpenProjectProfile"
+      }
+    },
+    {
+      "name": "update_project",
+      "description": "Update an existing project by projectId.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Name"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Color"
+          },
+          "view_mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "View Mode"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Kind"
+          },
+          "sort_order": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Sort Order"
+          },
+          "closed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Closed"
+          }
+        },
+        "required": [
+          "project_id"
+        ],
+        "title": "update_project_toolArguments"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Project unique id, hex string of ObjectId",
+            "title": "Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Project name",
+            "title": "Name"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Project color",
+            "title": "Color"
+          },
+          "sortOrder": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Project sort order",
+            "title": "Sortorder"
+          },
+          "closed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Whether project is closed",
+            "title": "Closed"
+          },
+          "groupId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Project group id",
+            "title": "Groupid"
+          },
+          "viewMode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "list",
+                  "kanban",
+                  "timeline"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "list",
+            "description": "Project view mode",
+            "title": "Viewmode"
+          },
+          "permission": {
+            "anyOf": [
+              {
+                "enum": [
+                  "read",
+                  "comment",
+                  "write"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Project permission",
+            "title": "Permission"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "TASK",
+                  "NOTE"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "TASK",
+            "description": "Project kind",
+            "title": "Kind"
+          }
+        },
+        "description": "Project profile information.",
+        "title": "OpenProjectProfile"
       }
     },
     {
@@ -1304,7 +1713,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task reminders",
+                "description": "Task reminders, Each trigger string must follow this pattern:\nTRIGGER(;RELATED=(END))?:(-)?P[nY][nM][nW][nD][T[nH][nM][nS]]\nExplanation\n    TRIGGER: — required prefix\n    ;RELATED=START|END — optional, defines whether the trigger is relative to the start or end time\n    - — optional, indicates the trigger occurs before the reference time (absence means after)\n    P — duration designator\n    nY nM nW nD — years, months, weeks, days\n    T — time separator\n    nH nM nS — hours, minutes, seconds.\nExamples\n[\n  \"TRIGGER:-PT60M\",\n  \"TRIGGER:-P1DT2H\",\n  \"TRIGGER;RELATED=END:-PT15M\",\n  \"TRIGGER:PT0S\"\n]\n Notes\n    \"TRIGGER:-PT60M\" means 60 minutes before the reference time\n    \"TRIGGER;RELATED=END:-PT15M\" means 15 minutes before the end time\n    \"TRIGGER:PT0S\" represents an “on-time” trigger\n    This structure corresponds to a duration format similar to ISO-8601 (e.g., P1DT2H), with additional semantics for direction and reference point.\n",
                 "title": "Reminders"
               },
               "repeatFlag": {
@@ -1317,7 +1726,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task repeat flag",
+                "description": "Task repeat flag\nThis field MUST be a valid recurrence rule string.\n\nUse:\n- RRULE for standard recurrence\n- ERULE for custom or advanced recurrence\n\nDO NOT mix RRULE and ERULE.\n\nPrefer examples:\n- \"RRULE:FREQ=DAILY\"\n- \"RRULE:FREQ=WEEKLY;BYDAY=MO,WE\"\n- \"ERULE:NAME=CUSTOM;BYDATE=20260325,20260330\"\n        ",
                 "title": "Repeatflag"
               },
               "completedTime": {
@@ -1641,7 +2050,7 @@
               }
             ],
             "default": null,
-            "description": "Task reminders",
+            "description": "Task reminders, Each trigger string must follow this pattern:\nTRIGGER(;RELATED=(END))?:(-)?P[nY][nM][nW][nD][T[nH][nM][nS]]\nExplanation\n    TRIGGER: — required prefix\n    ;RELATED=START|END — optional, defines whether the trigger is relative to the start or end time\n    - — optional, indicates the trigger occurs before the reference time (absence means after)\n    P — duration designator\n    nY nM nW nD — years, months, weeks, days\n    T — time separator\n    nH nM nS — hours, minutes, seconds.\nExamples\n[\n  \"TRIGGER:-PT60M\",\n  \"TRIGGER:-P1DT2H\",\n  \"TRIGGER;RELATED=END:-PT15M\",\n  \"TRIGGER:PT0S\"\n]\n Notes\n    \"TRIGGER:-PT60M\" means 60 minutes before the reference time\n    \"TRIGGER;RELATED=END:-PT15M\" means 15 minutes before the end time\n    \"TRIGGER:PT0S\" represents an “on-time” trigger\n    This structure corresponds to a duration format similar to ISO-8601 (e.g., P1DT2H), with additional semantics for direction and reference point.\n",
             "title": "Reminders"
           },
           "repeatFlag": {
@@ -1654,7 +2063,7 @@
               }
             ],
             "default": null,
-            "description": "Task repeat flag",
+            "description": "Task repeat flag\nThis field MUST be a valid recurrence rule string.\n\nUse:\n- RRULE for standard recurrence\n- ERULE for custom or advanced recurrence\n\nDO NOT mix RRULE and ERULE.\n\nPrefer examples:\n- \"RRULE:FREQ=DAILY\"\n- \"RRULE:FREQ=WEEKLY;BYDAY=MO,WE\"\n- \"ERULE:NAME=CUSTOM;BYDATE=20260325,20260330\"\n        ",
             "title": "Repeatflag"
           },
           "completedTime": {
@@ -2195,7 +2604,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task reminders",
+                "description": "Task reminders, Each trigger string must follow this pattern:\nTRIGGER(;RELATED=(END))?:(-)?P[nY][nM][nW][nD][T[nH][nM][nS]]\nExplanation\n    TRIGGER: — required prefix\n    ;RELATED=START|END — optional, defines whether the trigger is relative to the start or end time\n    - — optional, indicates the trigger occurs before the reference time (absence means after)\n    P — duration designator\n    nY nM nW nD — years, months, weeks, days\n    T — time separator\n    nH nM nS — hours, minutes, seconds.\nExamples\n[\n  \"TRIGGER:-PT60M\",\n  \"TRIGGER:-P1DT2H\",\n  \"TRIGGER;RELATED=END:-PT15M\",\n  \"TRIGGER:PT0S\"\n]\n Notes\n    \"TRIGGER:-PT60M\" means 60 minutes before the reference time\n    \"TRIGGER;RELATED=END:-PT15M\" means 15 minutes before the end time\n    \"TRIGGER:PT0S\" represents an “on-time” trigger\n    This structure corresponds to a duration format similar to ISO-8601 (e.g., P1DT2H), with additional semantics for direction and reference point.\n",
                 "title": "Reminders"
               },
               "repeatFlag": {
@@ -2208,7 +2617,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task repeat flag",
+                "description": "Task repeat flag\nThis field MUST be a valid recurrence rule string.\n\nUse:\n- RRULE for standard recurrence\n- ERULE for custom or advanced recurrence\n\nDO NOT mix RRULE and ERULE.\n\nPrefer examples:\n- \"RRULE:FREQ=DAILY\"\n- \"RRULE:FREQ=WEEKLY;BYDAY=MO,WE\"\n- \"ERULE:NAME=CUSTOM;BYDATE=20260325,20260330\"\n        ",
                 "title": "Repeatflag"
               },
               "completedTime": {
@@ -2532,7 +2941,7 @@
               }
             ],
             "default": null,
-            "description": "Task reminders",
+            "description": "Task reminders, Each trigger string must follow this pattern:\nTRIGGER(;RELATED=(END))?:(-)?P[nY][nM][nW][nD][T[nH][nM][nS]]\nExplanation\n    TRIGGER: — required prefix\n    ;RELATED=START|END — optional, defines whether the trigger is relative to the start or end time\n    - — optional, indicates the trigger occurs before the reference time (absence means after)\n    P — duration designator\n    nY nM nW nD — years, months, weeks, days\n    T — time separator\n    nH nM nS — hours, minutes, seconds.\nExamples\n[\n  \"TRIGGER:-PT60M\",\n  \"TRIGGER:-P1DT2H\",\n  \"TRIGGER;RELATED=END:-PT15M\",\n  \"TRIGGER:PT0S\"\n]\n Notes\n    \"TRIGGER:-PT60M\" means 60 minutes before the reference time\n    \"TRIGGER;RELATED=END:-PT15M\" means 15 minutes before the end time\n    \"TRIGGER:PT0S\" represents an “on-time” trigger\n    This structure corresponds to a duration format similar to ISO-8601 (e.g., P1DT2H), with additional semantics for direction and reference point.\n",
             "title": "Reminders"
           },
           "repeatFlag": {
@@ -2545,7 +2954,7 @@
               }
             ],
             "default": null,
-            "description": "Task repeat flag",
+            "description": "Task repeat flag\nThis field MUST be a valid recurrence rule string.\n\nUse:\n- RRULE for standard recurrence\n- ERULE for custom or advanced recurrence\n\nDO NOT mix RRULE and ERULE.\n\nPrefer examples:\n- \"RRULE:FREQ=DAILY\"\n- \"RRULE:FREQ=WEEKLY;BYDAY=MO,WE\"\n- \"ERULE:NAME=CUSTOM;BYDATE=20260325,20260330\"\n        ",
             "title": "Repeatflag"
           },
           "completedTime": {
@@ -3108,7 +3517,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task reminders",
+                "description": "Task reminders, Each trigger string must follow this pattern:\nTRIGGER(;RELATED=(END))?:(-)?P[nY][nM][nW][nD][T[nH][nM][nS]]\nExplanation\n    TRIGGER: — required prefix\n    ;RELATED=START|END — optional, defines whether the trigger is relative to the start or end time\n    - — optional, indicates the trigger occurs before the reference time (absence means after)\n    P — duration designator\n    nY nM nW nD — years, months, weeks, days\n    T — time separator\n    nH nM nS — hours, minutes, seconds.\nExamples\n[\n  \"TRIGGER:-PT60M\",\n  \"TRIGGER:-P1DT2H\",\n  \"TRIGGER;RELATED=END:-PT15M\",\n  \"TRIGGER:PT0S\"\n]\n Notes\n    \"TRIGGER:-PT60M\" means 60 minutes before the reference time\n    \"TRIGGER;RELATED=END:-PT15M\" means 15 minutes before the end time\n    \"TRIGGER:PT0S\" represents an “on-time” trigger\n    This structure corresponds to a duration format similar to ISO-8601 (e.g., P1DT2H), with additional semantics for direction and reference point.\n",
                 "title": "Reminders"
               },
               "repeatFlag": {
@@ -3121,7 +3530,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task repeat flag",
+                "description": "Task repeat flag\nThis field MUST be a valid recurrence rule string.\n\nUse:\n- RRULE for standard recurrence\n- ERULE for custom or advanced recurrence\n\nDO NOT mix RRULE and ERULE.\n\nPrefer examples:\n- \"RRULE:FREQ=DAILY\"\n- \"RRULE:FREQ=WEEKLY;BYDAY=MO,WE\"\n- \"ERULE:NAME=CUSTOM;BYDATE=20260325,20260330\"\n        ",
                 "title": "Repeatflag"
               },
               "completedTime": {
@@ -3591,7 +4000,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task reminders",
+                "description": "Task reminders, Each trigger string must follow this pattern:\nTRIGGER(;RELATED=(END))?:(-)?P[nY][nM][nW][nD][T[nH][nM][nS]]\nExplanation\n    TRIGGER: — required prefix\n    ;RELATED=START|END — optional, defines whether the trigger is relative to the start or end time\n    - — optional, indicates the trigger occurs before the reference time (absence means after)\n    P — duration designator\n    nY nM nW nD — years, months, weeks, days\n    T — time separator\n    nH nM nS — hours, minutes, seconds.\nExamples\n[\n  \"TRIGGER:-PT60M\",\n  \"TRIGGER:-P1DT2H\",\n  \"TRIGGER;RELATED=END:-PT15M\",\n  \"TRIGGER:PT0S\"\n]\n Notes\n    \"TRIGGER:-PT60M\" means 60 minutes before the reference time\n    \"TRIGGER;RELATED=END:-PT15M\" means 15 minutes before the end time\n    \"TRIGGER:PT0S\" represents an “on-time” trigger\n    This structure corresponds to a duration format similar to ISO-8601 (e.g., P1DT2H), with additional semantics for direction and reference point.\n",
                 "title": "Reminders"
               },
               "repeatFlag": {
@@ -3604,7 +4013,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task repeat flag",
+                "description": "Task repeat flag\nThis field MUST be a valid recurrence rule string.\n\nUse:\n- RRULE for standard recurrence\n- ERULE for custom or advanced recurrence\n\nDO NOT mix RRULE and ERULE.\n\nPrefer examples:\n- \"RRULE:FREQ=DAILY\"\n- \"RRULE:FREQ=WEEKLY;BYDAY=MO,WE\"\n- \"ERULE:NAME=CUSTOM;BYDATE=20260325,20260330\"\n        ",
                 "title": "Repeatflag"
               },
               "completedTime": {
@@ -4372,7 +4781,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task reminders",
+                "description": "Task reminders, Each trigger string must follow this pattern:\nTRIGGER(;RELATED=(END))?:(-)?P[nY][nM][nW][nD][T[nH][nM][nS]]\nExplanation\n    TRIGGER: — required prefix\n    ;RELATED=START|END — optional, defines whether the trigger is relative to the start or end time\n    - — optional, indicates the trigger occurs before the reference time (absence means after)\n    P — duration designator\n    nY nM nW nD — years, months, weeks, days\n    T — time separator\n    nH nM nS — hours, minutes, seconds.\nExamples\n[\n  \"TRIGGER:-PT60M\",\n  \"TRIGGER:-P1DT2H\",\n  \"TRIGGER;RELATED=END:-PT15M\",\n  \"TRIGGER:PT0S\"\n]\n Notes\n    \"TRIGGER:-PT60M\" means 60 minutes before the reference time\n    \"TRIGGER;RELATED=END:-PT15M\" means 15 minutes before the end time\n    \"TRIGGER:PT0S\" represents an “on-time” trigger\n    This structure corresponds to a duration format similar to ISO-8601 (e.g., P1DT2H), with additional semantics for direction and reference point.\n",
                 "title": "Reminders"
               },
               "repeatFlag": {
@@ -4385,7 +4794,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task repeat flag",
+                "description": "Task repeat flag\nThis field MUST be a valid recurrence rule string.\n\nUse:\n- RRULE for standard recurrence\n- ERULE for custom or advanced recurrence\n\nDO NOT mix RRULE and ERULE.\n\nPrefer examples:\n- \"RRULE:FREQ=DAILY\"\n- \"RRULE:FREQ=WEEKLY;BYDAY=MO,WE\"\n- \"ERULE:NAME=CUSTOM;BYDATE=20260325,20260330\"\n        ",
                 "title": "Repeatflag"
               },
               "completedTime": {
@@ -4887,7 +5296,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task reminders",
+                "description": "Task reminders, Each trigger string must follow this pattern:\nTRIGGER(;RELATED=(END))?:(-)?P[nY][nM][nW][nD][T[nH][nM][nS]]\nExplanation\n    TRIGGER: — required prefix\n    ;RELATED=START|END — optional, defines whether the trigger is relative to the start or end time\n    - — optional, indicates the trigger occurs before the reference time (absence means after)\n    P — duration designator\n    nY nM nW nD — years, months, weeks, days\n    T — time separator\n    nH nM nS — hours, minutes, seconds.\nExamples\n[\n  \"TRIGGER:-PT60M\",\n  \"TRIGGER:-P1DT2H\",\n  \"TRIGGER;RELATED=END:-PT15M\",\n  \"TRIGGER:PT0S\"\n]\n Notes\n    \"TRIGGER:-PT60M\" means 60 minutes before the reference time\n    \"TRIGGER;RELATED=END:-PT15M\" means 15 minutes before the end time\n    \"TRIGGER:PT0S\" represents an “on-time” trigger\n    This structure corresponds to a duration format similar to ISO-8601 (e.g., P1DT2H), with additional semantics for direction and reference point.\n",
                 "title": "Reminders"
               },
               "repeatFlag": {
@@ -4900,7 +5309,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task repeat flag",
+                "description": "Task repeat flag\nThis field MUST be a valid recurrence rule string.\n\nUse:\n- RRULE for standard recurrence\n- ERULE for custom or advanced recurrence\n\nDO NOT mix RRULE and ERULE.\n\nPrefer examples:\n- \"RRULE:FREQ=DAILY\"\n- \"RRULE:FREQ=WEEKLY;BYDAY=MO,WE\"\n- \"ERULE:NAME=CUSTOM;BYDATE=20260325,20260330\"\n        ",
                 "title": "Repeatflag"
               },
               "completedTime": {
@@ -5476,7 +5885,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task reminders",
+                "description": "Task reminders, Each trigger string must follow this pattern:\nTRIGGER(;RELATED=(END))?:(-)?P[nY][nM][nW][nD][T[nH][nM][nS]]\nExplanation\n    TRIGGER: — required prefix\n    ;RELATED=START|END — optional, defines whether the trigger is relative to the start or end time\n    - — optional, indicates the trigger occurs before the reference time (absence means after)\n    P — duration designator\n    nY nM nW nD — years, months, weeks, days\n    T — time separator\n    nH nM nS — hours, minutes, seconds.\nExamples\n[\n  \"TRIGGER:-PT60M\",\n  \"TRIGGER:-P1DT2H\",\n  \"TRIGGER;RELATED=END:-PT15M\",\n  \"TRIGGER:PT0S\"\n]\n Notes\n    \"TRIGGER:-PT60M\" means 60 minutes before the reference time\n    \"TRIGGER;RELATED=END:-PT15M\" means 15 minutes before the end time\n    \"TRIGGER:PT0S\" represents an “on-time” trigger\n    This structure corresponds to a duration format similar to ISO-8601 (e.g., P1DT2H), with additional semantics for direction and reference point.\n",
                 "title": "Reminders"
               },
               "repeatFlag": {
@@ -5489,7 +5898,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task repeat flag",
+                "description": "Task repeat flag\nThis field MUST be a valid recurrence rule string.\n\nUse:\n- RRULE for standard recurrence\n- ERULE for custom or advanced recurrence\n\nDO NOT mix RRULE and ERULE.\n\nPrefer examples:\n- \"RRULE:FREQ=DAILY\"\n- \"RRULE:FREQ=WEEKLY;BYDAY=MO,WE\"\n- \"ERULE:NAME=CUSTOM;BYDATE=20260325,20260330\"\n        ",
                 "title": "Repeatflag"
               },
               "completedTime": {
@@ -6001,7 +6410,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task reminders",
+                "description": "Task reminders, Each trigger string must follow this pattern:\nTRIGGER(;RELATED=(END))?:(-)?P[nY][nM][nW][nD][T[nH][nM][nS]]\nExplanation\n    TRIGGER: — required prefix\n    ;RELATED=START|END — optional, defines whether the trigger is relative to the start or end time\n    - — optional, indicates the trigger occurs before the reference time (absence means after)\n    P — duration designator\n    nY nM nW nD — years, months, weeks, days\n    T — time separator\n    nH nM nS — hours, minutes, seconds.\nExamples\n[\n  \"TRIGGER:-PT60M\",\n  \"TRIGGER:-P1DT2H\",\n  \"TRIGGER;RELATED=END:-PT15M\",\n  \"TRIGGER:PT0S\"\n]\n Notes\n    \"TRIGGER:-PT60M\" means 60 minutes before the reference time\n    \"TRIGGER;RELATED=END:-PT15M\" means 15 minutes before the end time\n    \"TRIGGER:PT0S\" represents an “on-time” trigger\n    This structure corresponds to a duration format similar to ISO-8601 (e.g., P1DT2H), with additional semantics for direction and reference point.\n",
                 "title": "Reminders"
               },
               "repeatFlag": {
@@ -6014,7 +6423,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task repeat flag",
+                "description": "Task repeat flag\nThis field MUST be a valid recurrence rule string.\n\nUse:\n- RRULE for standard recurrence\n- ERULE for custom or advanced recurrence\n\nDO NOT mix RRULE and ERULE.\n\nPrefer examples:\n- \"RRULE:FREQ=DAILY\"\n- \"RRULE:FREQ=WEEKLY;BYDAY=MO,WE\"\n- \"ERULE:NAME=CUSTOM;BYDATE=20260325,20260330\"\n        ",
                 "title": "Repeatflag"
               },
               "completedTime": {
@@ -6538,7 +6947,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task reminders",
+                "description": "Task reminders, Each trigger string must follow this pattern:\nTRIGGER(;RELATED=(END))?:(-)?P[nY][nM][nW][nD][T[nH][nM][nS]]\nExplanation\n    TRIGGER: — required prefix\n    ;RELATED=START|END — optional, defines whether the trigger is relative to the start or end time\n    - — optional, indicates the trigger occurs before the reference time (absence means after)\n    P — duration designator\n    nY nM nW nD — years, months, weeks, days\n    T — time separator\n    nH nM nS — hours, minutes, seconds.\nExamples\n[\n  \"TRIGGER:-PT60M\",\n  \"TRIGGER:-P1DT2H\",\n  \"TRIGGER;RELATED=END:-PT15M\",\n  \"TRIGGER:PT0S\"\n]\n Notes\n    \"TRIGGER:-PT60M\" means 60 minutes before the reference time\n    \"TRIGGER;RELATED=END:-PT15M\" means 15 minutes before the end time\n    \"TRIGGER:PT0S\" represents an “on-time” trigger\n    This structure corresponds to a duration format similar to ISO-8601 (e.g., P1DT2H), with additional semantics for direction and reference point.\n",
                 "title": "Reminders"
               },
               "repeatFlag": {
@@ -6551,7 +6960,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task repeat flag",
+                "description": "Task repeat flag\nThis field MUST be a valid recurrence rule string.\n\nUse:\n- RRULE for standard recurrence\n- ERULE for custom or advanced recurrence\n\nDO NOT mix RRULE and ERULE.\n\nPrefer examples:\n- \"RRULE:FREQ=DAILY\"\n- \"RRULE:FREQ=WEEKLY;BYDAY=MO,WE\"\n- \"ERULE:NAME=CUSTOM;BYDATE=20260325,20260330\"\n        ",
                 "title": "Repeatflag"
               },
               "completedTime": {
@@ -6993,7 +7402,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task reminders",
+                "description": "Task reminders, Each trigger string must follow this pattern:\nTRIGGER(;RELATED=(END))?:(-)?P[nY][nM][nW][nD][T[nH][nM][nS]]\nExplanation\n    TRIGGER: — required prefix\n    ;RELATED=START|END — optional, defines whether the trigger is relative to the start or end time\n    - — optional, indicates the trigger occurs before the reference time (absence means after)\n    P — duration designator\n    nY nM nW nD — years, months, weeks, days\n    T — time separator\n    nH nM nS — hours, minutes, seconds.\nExamples\n[\n  \"TRIGGER:-PT60M\",\n  \"TRIGGER:-P1DT2H\",\n  \"TRIGGER;RELATED=END:-PT15M\",\n  \"TRIGGER:PT0S\"\n]\n Notes\n    \"TRIGGER:-PT60M\" means 60 minutes before the reference time\n    \"TRIGGER;RELATED=END:-PT15M\" means 15 minutes before the end time\n    \"TRIGGER:PT0S\" represents an “on-time” trigger\n    This structure corresponds to a duration format similar to ISO-8601 (e.g., P1DT2H), with additional semantics for direction and reference point.\n",
                 "title": "Reminders"
               },
               "repeatFlag": {
@@ -7006,7 +7415,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task repeat flag",
+                "description": "Task repeat flag\nThis field MUST be a valid recurrence rule string.\n\nUse:\n- RRULE for standard recurrence\n- ERULE for custom or advanced recurrence\n\nDO NOT mix RRULE and ERULE.\n\nPrefer examples:\n- \"RRULE:FREQ=DAILY\"\n- \"RRULE:FREQ=WEEKLY;BYDAY=MO,WE\"\n- \"ERULE:NAME=CUSTOM;BYDATE=20260325,20260330\"\n        ",
                 "title": "Repeatflag"
               },
               "completedTime": {
@@ -7471,7 +7880,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task reminders",
+                "description": "Task reminders, Each trigger string must follow this pattern:\nTRIGGER(;RELATED=(END))?:(-)?P[nY][nM][nW][nD][T[nH][nM][nS]]\nExplanation\n    TRIGGER: — required prefix\n    ;RELATED=START|END — optional, defines whether the trigger is relative to the start or end time\n    - — optional, indicates the trigger occurs before the reference time (absence means after)\n    P — duration designator\n    nY nM nW nD — years, months, weeks, days\n    T — time separator\n    nH nM nS — hours, minutes, seconds.\nExamples\n[\n  \"TRIGGER:-PT60M\",\n  \"TRIGGER:-P1DT2H\",\n  \"TRIGGER;RELATED=END:-PT15M\",\n  \"TRIGGER:PT0S\"\n]\n Notes\n    \"TRIGGER:-PT60M\" means 60 minutes before the reference time\n    \"TRIGGER;RELATED=END:-PT15M\" means 15 minutes before the end time\n    \"TRIGGER:PT0S\" represents an “on-time” trigger\n    This structure corresponds to a duration format similar to ISO-8601 (e.g., P1DT2H), with additional semantics for direction and reference point.\n",
                 "title": "Reminders"
               },
               "repeatFlag": {
@@ -7484,7 +7893,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Task repeat flag",
+                "description": "Task repeat flag\nThis field MUST be a valid recurrence rule string.\n\nUse:\n- RRULE for standard recurrence\n- ERULE for custom or advanced recurrence\n\nDO NOT mix RRULE and ERULE.\n\nPrefer examples:\n- \"RRULE:FREQ=DAILY\"\n- \"RRULE:FREQ=WEEKLY;BYDAY=MO,WE\"\n- \"ERULE:NAME=CUSTOM;BYDATE=20260325,20260330\"\n        ",
                 "title": "Repeatflag"
               },
               "completedTime": {

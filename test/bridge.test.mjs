@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { Dida365Bridge, redactSensitiveText } from "../dist/bridge.js";
+import {
+  Dida365Bridge,
+  buildRuntimeEnv,
+  formatConnectFailureMessage,
+  redactSensitiveText,
+} from "../dist/bridge.js";
 
 function createRuntime({ callDelayMs = 0 } = {}) {
   const sessions = [];
@@ -110,11 +115,46 @@ test("reconnects after idle shutdown", async () => {
 
 test("redacts token-like secrets from stderr text", () => {
   const redacted = redactSensitiveText(
-    '{"access_token":"abc","refresh_token":"def","id_token":"ghi"}',
+    '{"access_token":"abc","refresh_token":"def","id_token":"ghi"} https://example.com/callback?code=secret&access_token=token',
   );
 
   assert.equal(
     redacted,
-    '{"access_token":"REDACTED","refresh_token":"REDACTED","id_token":"REDACTED"}',
+    '{"access_token":"REDACTED","refresh_token":"REDACTED","id_token":"REDACTED"} https://example.com/callback?code=REDACTED&access_token=REDACTED',
   );
+});
+
+test("uses an isolated npm cache under OPENCLAW_STATE_DIR by default", () => {
+  const env = buildRuntimeEnv(
+    { OPENCLAW_STATE_DIR: "/tmp/openclaw-dida365-state" },
+    {},
+  );
+
+  assert.equal(env.NPM_CONFIG_CACHE, "/tmp/openclaw-dida365-state/npm");
+  assert.equal(env.npm_config_cache, "/tmp/openclaw-dida365-state/npm");
+});
+
+test("preserves an explicitly configured npm cache", () => {
+  const env = buildRuntimeEnv(
+    { NPM_CONFIG_CACHE: "/tmp/custom-cache" },
+    { OPENCLAW_STATE_DIR: "/tmp/openclaw-dida365-state" },
+  );
+
+  assert.equal(env.NPM_CONFIG_CACHE, "/tmp/custom-cache");
+  assert.equal(env.npm_config_cache, undefined);
+});
+
+test("includes recent stderr lines in connect failure messages", () => {
+  const message = formatConnectFailureMessage(
+    new Error("Connection closed"),
+    [
+      "npm error code EPERM",
+      "Your cache folder contains root-owned files",
+    ],
+    "https://mcp.dida365.com",
+  );
+
+  assert.match(message, /Connection closed/);
+  assert.match(message, /EPERM/);
+  assert.match(message, /root-owned files/);
 });
