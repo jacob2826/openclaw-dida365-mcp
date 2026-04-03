@@ -116,13 +116,31 @@ openclaw plugins install "@jacob2826/openclaw-dida365-mcp"
 openclaw plugins install "@jacob2826/openclaw-dida365-mcp@0.2.3"
 ```
 
-### 2. 启用插件
+### 2. 升级到新版本
+
+```bash
+openclaw plugins update openclaw-dida365-mcp
+```
+
+指定版本：
+
+```bash
+openclaw plugins update "@jacob2826/openclaw-dida365-mcp@0.2.3"
+```
+
+如果你的机器有 `~/.npm` cache 权限问题：
+
+```bash
+env NPM_CONFIG_CACHE=/tmp/openclaw-dida365-npm openclaw plugins update openclaw-dida365-mcp
+```
+
+### 3. 启用插件
 
 ```bash
 openclaw config set plugins.entries.openclaw-dida365-mcp.enabled true
 ```
 
-### 3. 把插件工具加入 OpenClaw 的工具策略
+### 4. 把插件工具加入 OpenClaw 的工具策略
 
 这个插件注册的是 `optional` 插件工具。  
 如果你的 OpenClaw 配置了 `tools.profile`（例如常见的 `"coding"`）或显式 `tools.allow`，插件虽然已安装启用，但对话里的 Agent 仍然**看不到**这些滴答清单 MCP 工具。
@@ -158,7 +176,7 @@ openclaw gateway restart
 }
 ```
 
-### 4. 如需更细粒度控制，再使用 allowlist
+### 5. 如需更细粒度控制，再使用 allowlist
 
 如果你的 Agent 使用了工具 allowlist，请确保把插件 `id` 加进去。下面的片段只是示意，请在你现有配置基础上合并：
 
@@ -174,13 +192,13 @@ openclaw gateway restart
 }
 ```
 
-### 5. 重启 gateway
+### 6. 重启 gateway
 
 ```bash
 openclaw gateway restart
 ```
 
-### 6. 完成 OAuth
+### 7. 完成 OAuth
 
 首次真实调用工具时，`mcp-remote` 会触发浏览器登录。完成一次授权后，后续通常会复用本地 token。
 
